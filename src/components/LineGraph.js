@@ -1,7 +1,6 @@
-import numeral from "numeral";
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
+import numeral from "numeral";
 
 const options = {
   legend: {
@@ -12,7 +11,6 @@ const options = {
       radius: 0,
     },
   },
-
   maintainAspectRatio: false,
   tooltips: {
     mode: "index",
@@ -39,6 +37,7 @@ const options = {
           display: false,
         },
         ticks: {
+          // Include a dollar sign in the ticks
           callback: function (value, index, values) {
             return numeral(value).format("0a");
           },
@@ -48,7 +47,7 @@ const options = {
   },
 };
 
-function LineGraph() {
+function LineGraph({ casesType = "cases" }) {
   // https://disease.sh/v3/covid-19/historical/all?lastdays=120
   const [data, setData] = useState({});
 
@@ -85,20 +84,20 @@ function LineGraph() {
 
   return (
     <div>
-      <h1>I am graph</h1>
-
-      <Line
-        options={options}
-        data={{
-          datasets: [
-            {
-              data: data,
-              backgroundColor: "rgba(204, 15, 52, .8)",
-              borderColor: "#cc1034",
-            },
-          ],
-        }}
-      />
+      {data?.length > 0 && (
+        <Line
+          data={{
+            datasets: [
+              {
+                backgroundColor: "rgba(204, 16, 52, 0.5)",
+                borderColor: "#CC1034",
+                data: data,
+              },
+            ],
+          }}
+          options={options}
+        />
+      )}
     </div>
   );
 }

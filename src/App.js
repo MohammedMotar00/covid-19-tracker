@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "leaflet/dist/leaflet.css";
 import "./App.css";
 import {
   FormControl,
@@ -108,10 +109,10 @@ function App() {
             total={countryInfo.deaths}
           />
         </AppStats>
+        <Map />
       </AppLeft>
 
       {/* Map */}
-      <Map />
 
       <AppRight>
         <CardContent>
