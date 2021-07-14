@@ -14,6 +14,9 @@ import InfoBox from "./components/InfoBox";
 import Map from "./components/Map";
 import Table from "./components/Table";
 
+import { sortData } from "./util";
+import LineGraph from "./components/LineGraph";
+
 function App() {
   const [countries, setCountries] = useState([]);
   const [country, setCountry] = useState("worldwide");
@@ -33,12 +36,13 @@ function App() {
       await fetch("https://disease.sh/v3/covid-19/countries")
         .then((res) => res.json())
         .then((data) => {
-          console.log(data);
           const countries = data.map((country) => ({
             name: country.country,
             value: country.countryInfo.iso2,
           }));
-          setTableData(data);
+
+          const sortedData = sortData(data);
+          setTableData(sortedData);
           setCountries(countries);
         });
     };
@@ -51,7 +55,6 @@ function App() {
 
     setCountry(countryCode);
 
-    // https://disease.sh/v3/covid-19/countries/[COUNTRY_CODE]
     const url =
       countryCode === "worldwide"
         ? "https://disease.sh/v3/covid-19/all"
@@ -62,8 +65,6 @@ function App() {
         setCountryInfo(data);
       });
   };
-
-  console.log(countryInfo);
 
   return (
     <AppContainer>
@@ -118,8 +119,7 @@ function App() {
           <Table countries={tableData} />
           <h3>Worldwide new cases</h3>
         </CardContent>
-        {/* Table */}
-        {/* Graph */}
+        <LineGraph />
       </AppRight>
     </AppContainer>
   );
