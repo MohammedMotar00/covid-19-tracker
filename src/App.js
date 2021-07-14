@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import "leaflet/dist/leaflet.css";
+import React, { useEffect, useState } from "react";
 import "./App.css";
 import {
   FormControl,
@@ -15,14 +14,19 @@ import InfoBox from "./components/InfoBox";
 import Map from "./components/Map";
 import Table from "./components/Table";
 
-import { sortData } from "./util";
+import { prettyPrintStat, sortData } from "./util";
 import LineGraph from "./components/LineGraph";
+import "leaflet/dist/leaflet.css";
 
 function App() {
   const [countries, setCountries] = useState([]);
   const [country, setCountry] = useState("worldwide");
   const [countryInfo, setCountryInfo] = useState({});
   const [tableData, setTableData] = useState([]);
+  const [mapCenter, setMapCenter] = useState({ lat: 34.80746, lng: -40.4796 });
+  const [mapZoom, setMapZoom] = useState(3);
+  const [mapCountries, setMapCountries] = useState([]);
+  const [casesType, setCasesType] = useState("cases");
 
   useEffect(() => {
     fetch("https://disease.sh/v3/covid-19/all")
@@ -44,6 +48,7 @@ function App() {
 
           const sortedData = sortData(data);
           setTableData(sortedData);
+          setMapCountries(data);
           setCountries(countries);
         });
     };
@@ -63,7 +68,11 @@ function App() {
     await fetch(url)
       .then((response) => response.json())
       .then((data) => {
+        setCountry(countryCode);
         setCountryInfo(data);
+
+        setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
+        setMapZoom(4);
       });
   };
 
@@ -73,7 +82,7 @@ function App() {
       {/* title + select input dropdown field */}
       <AppLeft>
         <AppHeader>
-          <h1>Covid-19 Tracker</h1>
+          <h1>COVID-19 TRACKER</h1>
           <AppDropdown>
             <Select
               variant="outlined"
@@ -94,22 +103,35 @@ function App() {
 
         <AppStats>
           <InfoBox
+            isRed
             title="Coronavirus Cases"
-            cases={countryInfo.todayCases}
+            cases={prettyPrintStat(countryInfo.todayCases)}
             total={countryInfo.cases}
+            onClick={(e) => setCasesType("cases")}
+            active={casesType === "cases"}
           />
           <InfoBox
             title="Recovered"
-            cases={countryInfo.todayRecovered}
+            cases={prettyPrintStat(countryInfo.todayRecovered)}
             total={countryInfo.recovered}
+            onClick={(e) => setCasesType("recovered")}
+            active={casesType === "recovered"}
           />
           <InfoBox
+            isRed
             title="Deaths"
-            cases={countryInfo.todayDeaths}
+            cases={prettyPrintStat(countryInfo.todayDeaths)}
             total={countryInfo.deaths}
+            onClick={(e) => setCasesType("deaths")}
+            active={casesType === "deaths"}
           />
         </AppStats>
-        <Map />
+        <Map
+          countries={mapCountries}
+          center={mapCenter}
+          zoom={mapZoom}
+          casesType={casesType}
+        />
       </AppLeft>
 
       {/* Map */}
@@ -118,9 +140,11 @@ function App() {
         <CardContent>
           <h3>Live Cases by Country</h3>
           <Table countries={tableData} />
-          <h3>Worldwide new cases</h3>
+          <h3 style={{ marginTop: "20px", marginBottom: "20px" }}>
+            Worldwide new {casesType}{" "}
+          </h3>
+          <LineGraph casesType={casesType} />
         </CardContent>
-        <LineGraph />
       </AppRight>
     </AppContainer>
   );
@@ -138,17 +162,41 @@ const AppContainer = styled.div`
   }
 `;
 
-const AppDropdown = styled(FormControl)``;
+const AppDropdown = styled(FormControl)`
+  background-color: white;
+`;
+
 const AppLeft = styled.div`
   flex: 0.9;
 `;
-const AppRight = styled(Card)``;
 
-const AppHeader = styled(Card)`
+const AppRight = styled(Card)`
+  display: flex;
+  flex-direction: column;
+
+  .MuiCardContent-root {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+`;
+
+const AppHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+
+  h1 {
+    font-size: 2rem;
+    color: #9c0000;
+  }
+
+  @media (max-width: 500px) {
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
 `;
 
 const AppStats = styled.div`
